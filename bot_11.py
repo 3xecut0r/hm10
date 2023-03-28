@@ -13,22 +13,29 @@ class Phone(Field):
     pass
         
 class Record:
-    def __init__(self, name):
+    def __init__(self, name, phone):
         self.name = name
-        self.phones = []
-        
+        self.phone = phone
+
     def add_phone(self, phone):
-        self.phones.append(phone)
+        self.phone.append(phone)
         
-    def change_phone(self, index, phone):
-        self.phones[index] = phone
+    def change_phone(self, phone, new_phone):
+        self.phone.value = list(str(self.phone.value))
+        if phone in self.phone.value:
+            self.phone.value.remove(phone)
+            self.phone.value.append(new_phone)
+        return self.phone
+        
         
     def delete_phone(self, phone):
         self.phones.remove(phone)
     
 class AddressBook(UserDict):
     def add_record(self, record):
-        self.data[record.name.value] = record
+        name = record.name.value
+        self.data[name] = record
+        
 
 contacts = AddressBook()
 
@@ -48,7 +55,7 @@ def help(*args):
     return """
 help: To see this message
 add <Name> <phone>: add contact
-change <Name> <phone>: change contact's name of phone
+change <Name> <phone> <new_phone>: change contact's name of phone
 show all: List of contacts
 hello: hello
 phone <Name>: To see phone number of <Name>
@@ -64,29 +71,29 @@ def add(*args):
     command = args[0].split()
     name = Name(command[0])
     phone = Phone(command[1])
-    record = Record(name)
-    record.add_phone(phone)
+    record = Record(name, phone)
     contacts.add_record(record)
     return f"Added <{name.value}> with phone <{phone.value}>"
 
 @input_error
 def phone(*args):
     name = args[0]
-    return contacts.data[name]
+    ph = contacts.data[name]
+    return ph.phone.value
 
 @input_error
 def change(*args):
     command = args[0].split()
-    name = Name(command[0])
-    phone = Phone(command[1])
-    record = contacts.data[name.value]
-    record.change_phone(0, phone)
-    return f"Changed <{name.value}>:<{phone.value}>"
+    obj = contacts[command[0]]
+    obj.change_phone(command[1], command[2])
+    return f"Changed number"
 
 @input_error
 def show_all(*args):
-    return "\n".join([f"{k}:{v}" for k, v in contacts.data.items()])
+    return "\n".join([f"{k}:{v.phone.value}" for k, v in contacts.data.items()])
 
+    
+    
 @input_error
 def exit(*args):
     return "Good bye"
