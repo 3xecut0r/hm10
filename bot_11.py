@@ -5,6 +5,9 @@ from collections import UserDict
 class Field:
     def __init__(self, value=None):
         self.value = value
+    
+    def __str__(self):
+        return str(self.value)
 
 class Name(Field):
     pass
@@ -13,20 +16,15 @@ class Phone(Field):
     pass
         
 class Record:
-    def __init__(self, name, phone):
+    def __init__(self, name):
         self.name = name
-        self.phone = phone
+        self.phones = []
 
     def add_phone(self, phone):
-        self.phone.append(phone)
+        self.phones.append(phone)
         
-    def change_phone(self, phone, new_phone):
-        self.phone.value = list(str(self.phone.value))
-        if phone in self.phone.value:
-            self.phone.value.remove(phone)
-            self.phone.value.append(new_phone)
-        return self.phone
-        
+    def change_phone(self, index, phone):
+        self.phones[index] = phone
         
     def delete_phone(self, phone):
         self.phones.remove(phone)
@@ -55,7 +53,7 @@ def help(*args):
     return """
 help: To see this message
 add <Name> <phone>: add contact
-change <Name> <phone> <new_phone>: change contact's name of phone
+change <Name> <new_phone>: change contact's name of phone
 show all: List of contacts
 hello: hello
 phone <Name>: To see phone number of <Name>
@@ -68,31 +66,43 @@ def hello(*args):
 
 @input_error
 def add(*args):
-    command = args[0].split()
-    name = Name(command[0])
-    phone = Phone(command[1])
-    record = Record(name, phone)
+    obj = args[0].split()
+    name = Name(obj[0])
+    phone = Phone(obj[1])
+    record = Record(name)
+    record.add_phone(phone)
     contacts.add_record(record)
     return f"Added <{name.value}> with phone <{phone.value}>"
 
 @input_error
 def phone(*args):
     name = args[0]
-    ph = contacts.data[name]
-    return ph.phone.value
+    if name in contacts.data:
+        for key, val in contacts.data.items():
+            record = contacts.data[key]
+            if name == key:
+                return f"{name}: {', '.join(str(phone) for phone in record.phones)}"
+    raise KeyError
+            
 
 @input_error
 def change(*args):
-    command = args[0].split()
-    obj = contacts[command[0]]
-    obj.change_phone(command[1], command[2])
-    return f"Changed number"
+    obj = args[0].split()
+    name = Name(obj[0])
+    phone = Phone(obj[1])
+    record = contacts[name.value]
+    record.change_phone(0, phone)
+    return f"Changed phone <{phone}>, with name <{name}>"
 
 @input_error
 def show_all(*args):
-    return "\n".join([f"{k}:{v.phone.value}" for k, v in contacts.data.items()])
-
-    
+    list = []
+    if len(contacts.data) == 0:
+        return "list of contacts is empty..."
+    for k, v in contacts.data.items():
+        record = contacts.data[k]
+        list.append(f"{k}: {', '.join(str(phone) for phone in record.phones)}")
+    return "\n".join([f"{item}"for item in list])
     
 @input_error
 def exit(*args):
@@ -130,4 +140,3 @@ def main():
 if __name__ == "__main__":
     print(hello() + " Type <help> if you need help.")
     main()
-    
