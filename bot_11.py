@@ -3,7 +3,7 @@ from collections import UserDict
 
 
 class Field:
-    def __init__(self, value=None):
+    def __init__(self, value):
         self.value = value
     
     def __str__(self):
@@ -16,9 +16,9 @@ class Phone(Field):
     pass
         
 class Record:
-    def __init__(self, name):
+    def __init__(self, name, phone=None):
         self.name = name
-        self.phones = []
+        self.phones = [phone] if phone else [] 
 
     def add_phone(self, phone):
         self.phones.append(phone)
@@ -69,19 +69,16 @@ def add(*args):
     obj = args[0].split()
     name = Name(obj[0])
     phone = Phone(obj[1])
-    record = Record(name)
-    record.add_phone(phone)
+    record = Record(name, phone)
     contacts.add_record(record)
     return f"Added <{name.value}> with phone <{phone.value}>"
 
 @input_error
 def phone(*args):
     name = args[0]
-    if name in contacts.data:
-        for key, val in contacts.data.items():
-            record = contacts.data[key]
-            if name == key:
-                return f"{name}: {', '.join(str(phone) for phone in record.phones)}"
+    record = contacts.get(name)
+    if record:
+        return f"{name}: {', '.join(str(phone) for phone in record.phones)}"
     raise KeyError
             
 
